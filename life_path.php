@@ -11,24 +11,25 @@ $stmt = $pdo->prepare("SELECT birthdate FROM users WHERE id = :id");
 $stmt->bindValue(':id', $user_id, PDO::PARAM_INT);
 $stmt->execute();
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-$birthdate = $row["birthdate"];
+$birthdate = $row["birthdate"] ?? "";
 
-// ✅ ライフパスナンバー計算関数
+// ✅ ライフパスナンバー計算（修正）
 function calcLifePath($birthdate) {
-    // YYYY-MM-DD → 数字だけに
-    $digits = str_split(str_replace('-', '', $birthdate));
+    // ✅ 数字のみ抽出（-や/を削除）
+    $digitsOnly = preg_replace('/[^0-9]/', '', $birthdate);
+    $digits = str_split($digitsOnly);
     $sum = array_sum($digits);
 
-    // 1桁になるまで足し続け（ただし11,22,33はマスター）
+    // ✅ 1桁またはマスターナンバー(11,22,33)まで計算
     while ($sum > 9 && $sum != 11 && $sum != 22 && $sum != 33) {
-        $sum = array_sum(str_split($sum));
+        $sum = array_sum(str_split((string)$sum));
     }
     return $sum;
 }
 
-$lifePath = calcLifePath($birthdate);
+$lifePath = $birthdate ? calcLifePath($birthdate) : "？";
 
-// ✅ 数秘メッセージ（例）
+// ✅ メッセージ
 $messages = [
   1 => "🌟 1：リーダーシップと開拓精神を持つタイプ。新しい道を切り開きます。",
   2 => "🤝 2：協調性と優しさが魅力。人間関係が運を運びます。",
@@ -49,31 +50,50 @@ $messages = [
 <head>
 <meta charset="UTF-8">
 <title>あなたのライフパスナンバー</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
   body {
     background:#1c1c3c;
     color:white;
     text-align:center;
     font-family:sans-serif;
-    padding:40px;
+    padding:20px;
+    margin:0;
   }
   .card {
-    background:rgba(255,255,255,0.1);
-    padding:20px;
-    border-radius:12px;
-    width:300px;
-    margin:0 auto;
-    box-shadow:0 0 15px rgba(255,255,255,0.1);
+    background:rgba(255,255,255,0.08);
+    padding:25px;
+    border-radius:14px;
+    max-width:340px;
+    margin:30px auto;
+    box-shadow:0 0 15px rgba(255,255,255,0.15);
+  }
+  h2 {
+    margin:10px 0;
+    font-size:1.4rem;
+    color:#f8bbd0;
   }
   .number {
-    font-size:3rem;
+    font-size:3.2rem;
     color:#f8bbd0;
+    margin:15px 0;
+  }
+  p {
+    font-size:1rem;
+    line-height:1.6;
   }
   a {
     display:block;
-    margin-top:20px;
+    margin-top:25px;
     color:#f8bbd0;
     text-decoration:none;
+    font-size:1rem;
+  }
+  @media (max-width:480px) {
+    .card { width:90%; padding:20px; }
+    .number { font-size:2.5rem; }
+    h2 { font-size:1.2rem; }
+    p { font-size:0.95rem; }
   }
 </style>
 </head>
@@ -81,9 +101,10 @@ $messages = [
   <div class="card">
     <h2>🌙 あなたの</h2>
     <h2>ライフパスナンバー</h2>
-    <p class="number"><?= $lifePath ?></p>
+    <p class="number"><?= htmlspecialchars($lifePath) ?></p>
     <p><?= $messages[$lifePath] ?? "✨ あなたの特別な力を活かしてください！" ?></p>
   </div>
-  <a href="home.php">→ 今日の気分入力へ</a>
+
+  <a href="home.php">← 今日の気分入力へ</a>
 </body>
 </html>
