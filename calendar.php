@@ -24,9 +24,15 @@ function getPersonalDay($birthdate, $date){
     return $sum > 9 ? $sum % 9 : $sum;
 }
 
+// ✅ アイコンを固定し、3回に1回表示するロジック
+function shouldShowIcon($date) {
+    $hash = crc32($date); // 日付を基にハッシュ値を生成
+    return ($hash % 3) === 0; // 3回に1回表示
+}
+
 $icons = [
-  1 => "🚀✨", 2 => "🤝😊", 3 => "🎨🎤", 4 => "🧱📈",
-  5 => "🍃🌀", 6 => "🏠❤️", 7 => "🧘‍♀️🔍", 8 => "💼💰", 9 => "🍂🕊️"
+  1 => "🚀", 2 => "🤝", 3 => "🎨", 4 => "📈",
+  5 => "🍃", 6 => "🏠", 7 => "🧘‍♀️", 8 => "💰", 9 => "🕊️"
 ];
 
 // ✅ 今月
@@ -57,20 +63,42 @@ foreach ($results as $row) {
 <head>
 <meta charset="UTF-8">
 <title><?= $year ?>年<?= $month ?>月の気分カレンダー</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-  body {background:#1c1c3c;color:white;font-family:sans-serif;text-align:center;padding:40px;}
-  table {margin:0 auto;border-collapse:collapse;}
-  th, td {width:60px;height:60px;border:1px solid #444;vertical-align:top;padding:4px;position:relative;}
-  .has-comment {background-color:#2a2a55;}
-  .day-number a {font-size:0.8rem;text-align:left;display:block;color:#fff;text-decoration:none;}
-  .day-icons {text-align:center;margin-top:4px;font-size:1rem;line-height:1.3;min-height:30px;}
-  .pd-icon {font-size:1.2rem;display:inline-block;margin-top:2px;text-decoration:none;}
-  .nav-links {margin-top:20px;}
-  .nav-links a {color:#f8bbd0;text-decoration:none;margin:0 10px;}
+  body {
+    background:#1c1c3c;
+    color:white;
+    font-family:sans-serif;
+    text-align:center;
+    padding:10px;
+    margin:0;
+  }
+  h2 { font-size:1.3rem; margin:15px 0; }
+  table { margin:0 auto; border-collapse:collapse; width:100%; max-width:420px; }
+  th, td {
+    width:14%; /* ✅ 7列均等 */
+    height:60px;
+    border:1px solid #444;
+    vertical-align:top;
+    padding:3px;
+    font-size:0.8rem;
+  }
+  .has-comment { background-color:#2a2a55; }
+  .day-number a { font-size:0.75rem; text-align:left; display:block; color:#fff; text-decoration:none; }
+  .day-icons { text-align:center; margin-top:3px; font-size:0.9rem; line-height:1.3; min-height:25px; }
+  .pd-icon { font-size:1rem; display:inline-block; margin-top:2px; text-decoration:none; }
+  .nav-links { margin-top:15px; font-size:0.9rem; }
+  .nav-links a { color:#f8bbd0; text-decoration:none; margin:0 5px; }
+  @media (max-width:480px) {
+    th, td { height:50px; font-size:0.7rem; }
+    .pd-icon { font-size:0.9rem; }
+    .day-icons { font-size:0.8rem; }
+    .nav-links { font-size:0.85rem; }
+  }
 </style>
 </head>
 <body>
-<h2>📅 <?= $year ?>年<?= $month ?>月の気分</h2>
+<h2>📅 <?= $year ?>年<?= $month ?>月カレンダー</h2>
 <table>
 <tr><th>日</th><th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th></tr>
 <?php
@@ -91,13 +119,14 @@ for (; $day <= $daysInMonth; $day++, $cell++) {
     $class = $hasComment ? ' class="has-comment"' : '';
 
     $personalDay = getPersonalDay($birth, $date);
-    $showIcon = (rand(1,3) === 1); // ランダム表示（3日に1回）
+    $icon = $icons[$personalDay]; // パーソナルデイに対応するアイコンを取得
+    $showIcon = shouldShowIcon($date); // 3回に1回表示するか判定
 
     echo "<td{$class}>";
     echo "<div class='day-number'><a href='$url'>$day</a></div>";
     echo "<div class='day-icons'>";
     if ($mood) echo "$mood<br>";
-    if ($showIcon) echo "<a href='icon_info.php?n=$personalDay' target='_blank' class='pd-icon'>".$icons[$personalDay]."</a><br>";
+    if ($showIcon) echo "<a href='icon_info.php?n=$personalDay' target='_blank' class='pd-icon'>$icon</a><br>";
     if ($hasComment) echo "💬";
     echo "</div>";
     echo "</td>";
@@ -110,9 +139,9 @@ echo "</tr>";
 </table>
 
 <div class="nav-links">
-  <a href="home.php">← 今日の気分を記録する</a> |
-  <a href="life_path.php">🔮 ライフパスナンバーを見る</a> |
-  <a href="logout.php">🚪 ログアウト</a>
+  <a href="home.php">← 今日の気分を記録</a> |
+  <a href="life_path.php">🔮 ライフパスナンバーを見る</a><br><br>
+  <a href="logout.php" style="font-size: 0.8rem;">🚪ログアウト</a>
 </div>
 </body>
 </html>
