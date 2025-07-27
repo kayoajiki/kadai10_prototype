@@ -42,85 +42,111 @@ if ($id) {
     $id = $row['id'];
   }
 } else {
-  $date = date('Y-m-d'); // どちらもなければ今日の日付
+  $date = date('Y-m-d'); // デフォルトは今日の日付
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>編集：<?= $date ?></title>
   <style>
     body {
-  background: #1c1c3c;
-  color: white;
-  font-family: 'Helvetica Neue', sans-serif;
-  text-align: center;
-  padding: 40px 20px;
-}
-
-form {
-  max-width: 350px;
-  margin: 0 auto;
-}
-
-.hearts {
-  font-size: 2rem;
-  cursor: pointer;
-  user-select: none;
-  margin-bottom: 20px;
-}
-
-textarea {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 20px;
-  border-radius: 8px;
-  border: none;
-  resize: vertical;
-  background: rgba(255,255,255,0.1);
-  color: white;
-}
-
-input[type="submit"] {
-  background: #b39ddb;
-  color: #2c3e50;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  width: 100%;
-  max-width: 300px;
-}
-
-a.back {
-  margin-top: 20px;
-  display: block;
-  color: #f8bbd0;
-  text-decoration: none;
-}
+      background: #1c1c3c;
+      color: white;
+      font-family: 'Helvetica Neue', sans-serif;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      background: rgba(255,255,255,0.05);
+      padding: 30px 20px;
+      border-radius: 12px;
+      max-width: 350px;
+      margin: 40px auto;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
+    }
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 20px;
+    }
+    form {
+      width: 100%;
+    }
+    .hearts {
+      font-size: 2.5rem;
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      border: none;
+      resize: vertical;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      font-size: 1rem;
+    }
+    textarea::placeholder {
+      color: #aaa;
+    }
+    input[type="submit"] {
+      background: #b39ddb;
+      color: #2c3e50;
+      border: none;
+      padding: 12px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+    input[type="submit"]:hover {
+      background: #d1c4e9;
+    }
+    a.back {
+      margin-top: 15px;
+      display: block;
+      color: #f8bbd0;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+    @media (max-width: 480px) {
+      .container { padding: 20px; }
+      .hearts { font-size: 2rem; gap: 10px; }
+      h2 { font-size: 1.2rem; }
+      textarea { font-size: 0.9rem; }
+      input[type="submit"] { font-size: 0.95rem; }
+    }
   </style>
 </head>
 <body>
-  <h2>📝 <?= $date ?> の気分編集</h2>
+  <div class="container">
+    <h2>📝 <?= $date ?> の気分編集</h2>
 
-  <form action="update_mood.php" method="post">
-    <div class="hearts">
-      <span class="heart" data-value="1">🤍</span>
-      <span class="heart" data-value="2">🤍</span>
-      <span class="heart" data-value="3">🤍</span>
-    </div>
-    <input type="hidden" name="mood" id="mood" value="<?= $mood ?>">
-    <br>
-    <textarea name="comment" rows="3" placeholder="今日のひとこと"><?= htmlspecialchars($comment) ?></textarea>
-    <input type="hidden" name="id" value="<?= htmlspecialchars($id ?? '') ?>">
-    <input type="hidden" name="date" value="<?= htmlspecialchars($date) ?>">
-    <br>
-    <input type="submit" value="更新">
-  </form>
+    <form action="update_mood.php" method="post">
+      <div class="hearts">
+        <span class="heart" data-value="1">🤍</span>
+        <span class="heart" data-value="2">🤍</span>
+        <span class="heart" data-value="3">🤍</span>
+      </div>
+      <input type="hidden" name="mood" id="mood" value="<?= $mood ?>">
+      <textarea name="comment" rows="3" placeholder="今日のひとこと"><?= htmlspecialchars($comment) ?></textarea>
+      <input type="hidden" name="id" value="<?= htmlspecialchars($id ?? '') ?>">
+      <input type="hidden" name="date" value="<?= htmlspecialchars($date) ?>">
+      <input type="submit" value="更新">
+    </form>
 
-  <a href="calendar.php" class="back">← カレンダーへ戻る</a>
+    <a href="calendar.php" class="back">← カレンダーへ戻る</a>
+  </div>
 
   <script>
     const hearts = document.querySelectorAll('.heart');
@@ -138,12 +164,7 @@ a.back {
 
     hearts.forEach((heart, index) => {
       heart.addEventListener('click', () => {
-        const clickedMood = index + 1;
-        if (currentMood === clickedMood) {
-          currentMood = clickedMood - 1;
-        } else {
-          currentMood = clickedMood;
-        }
+        currentMood = (currentMood === index + 1) ? index : index + 1;
         updateHearts(currentMood);
       });
     });
